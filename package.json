@@ -13,7 +13,7 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
+    "build": "npm run build -w @aibar/protocol && npm run build -w @aibar/core && npm run build -w @aibar/intent && npm run build -w @aibar/renderer-dom && npm run build -w @aibar/react && npm run build -w @aibar/devtools",
     "test": "vitest run",
     "lint": "eslint .",
     "attw": "npm run attw --workspaces --if-present",
