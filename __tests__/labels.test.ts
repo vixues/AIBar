@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_CHROME_LABELS,
+  createDefaultHostAdapter,
   formatChromeLabel,
   resolveChromeLabel,
 } from '@aibar/core';
@@ -23,6 +24,14 @@ describe('DEFAULT_CHROME_LABELS', () => {
   it('falls back when the host echoes the raw key', () => {
     expect(resolveChromeLabel((key) => key, 'aibar.collapse')).toBe('Collapse');
     expect(resolveChromeLabel((key) => key, 'aibar.deny')).toBe('Deny');
+  });
+
+  it('maps named icon refs to glyphs instead of truncated latin', () => {
+    const adapter = createDefaultHostAdapter({
+      dispatchAction: async () => ({ ok: true }),
+    });
+    expect(adapter.resolveIcon('send')).toEqual({ kind: 'text', text: '➤' });
+    expect(adapter.resolveIcon('👋')).toEqual({ kind: 'text', text: '👋' });
   });
 
   it('covers every kernel-synthesized chrome key', () => {

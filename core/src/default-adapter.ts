@@ -13,9 +13,27 @@ import type {
 export type DefaultHostAdapterOptions = Partial<AIBarHostAdapter> &
   Pick<AIBarHostAdapter, 'dispatchAction'>;
 
+/** Named Lucide-style refs → a single glyph so default embeds are readable. */
+const ICON_GLYPHS: Readonly<Record<string, string>> = {
+  send: '➤',
+  attach: '📎',
+  paperclip: '📎',
+  sparkles: '✦',
+  settings: '⚙',
+  trash: '⌫',
+  command: '⌘',
+  image: '🖼',
+  smile: '☺',
+};
+
 function glyphIcon(ref: string): IconRenderable {
-  const ch = ref.trim();
-  return { kind: 'text', text: ch ? ch.slice(0, 2) : '·' };
+  const named = ICON_GLYPHS[ref.trim().toLowerCase()];
+  if (named) return { kind: 'text', text: named };
+  const chars = Array.from(ref.trim());
+  if (chars.length === 0) return { kind: 'text', text: '·' };
+  // Keep short emoji / glyphs intact (String.slice can split a surrogate pair).
+  if (chars.length <= 2) return { kind: 'text', text: chars.join('') };
+  return { kind: 'text', text: chars[0]! };
 }
 
 export function createMemoryPersistence(): AIBarHostAdapter['persistence'] {
