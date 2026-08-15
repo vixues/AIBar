@@ -570,15 +570,18 @@
 .aibar-segment__scroll::-webkit-scrollbar { display: none; }
 .aibar-segment__scroll:active { cursor: grabbing; }
 
-/* Glyph tabs: no edge fade (circles must stay fully visible); still scrollable. */
+/* Glyph tabs: no edge fade (circles must stay fully visible); still scrollable.
+   Keep the rail start-aligned so category nav does not jump to the trailing edge. */
 .aibar-item[data-tabs='glyph'] .aibar-segment__scroll {
   align-items: center;
+  justify-content: flex-start;
   gap: 2px;
   padding: 0 2px;
   mask-image: none;
   -webkit-mask-image: none;
   overflow-x: auto;
   overflow-y: hidden;
+  overflow-anchor: none;
 }
 
 .aibar-segment {

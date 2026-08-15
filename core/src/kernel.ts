@@ -1098,10 +1098,19 @@ export class AIBarKernel {
     // Presentation-scoped Escape chrome (Appendix B + NSPopoverTouchBarItem):
     // ground → edgePad flush-left; subsurface → fixed Esc slot on that bar.
     const presentation = sub ? 'subsurface' : 'ground';
+    // Popover children must keep declaration order (emoji category rail left of
+    // the scrubber). Ground stability/baseOrder would treat them as newcomers
+    // and pack by score — the nav jumped to the trailing edge on click.
+    const subBaseOrder = sub
+      ? new Map<AIBarItemIdentifier, number>([
+          ...this.effectiveBaseOrder(),
+          ...contextualItems.map((item, i) => [item.id, i] as const),
+        ])
+      : null;
     const plan = resolve({
       ctx,
       items,
-      baseOrder: this.effectiveBaseOrder(),
+      baseOrder: subBaseOrder ?? this.effectiveBaseOrder(),
       requiredIds,
       pinnedIds: this.pinned,
       principalId: this.definition.principalItemIdentifier,
@@ -1111,7 +1120,7 @@ export class AIBarKernel {
       measureText: (text) => this.backend!.measure([{ text, density: this.density }])[0]?.width ?? text.length * 8,
       resolveLabel: (key) => this.label(key),
       frecency: (id) => this.frecencyScore(id),
-      stability: this.stability,
+      stability: sub ? EMPTY_STABILITY : this.stability,
       now,
       suggestionPolicy: suppressSuggestions
         ? { ...this.suggestionPolicy, maxVisible: 0 }

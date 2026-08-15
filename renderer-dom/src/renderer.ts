@@ -1483,7 +1483,7 @@ export class DOMRendererBackend implements RendererBackend {
     focusables.forEach((el, i) => {
       el.tabIndex = i === clamped ? 0 : -1;
     });
-    focusables[clamped]?.focus();
+    focusables[clamped]?.focus({ preventScroll: true });
   }
 
   private toggleFocus(): void {

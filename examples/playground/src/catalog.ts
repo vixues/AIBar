@@ -202,6 +202,7 @@ export function registerDemoCatalog(kernel: AIBarKernel, snap: DemoSnap): void {
           labelKey: 'Emoji category',
           parity: 'none:demo-emoji-category',
           showsLabel: false,
+          visibilityPriority: 1000,
           width: {
             min: Math.min(120, tabCount * 22),
             preferred: tabCount * EMOJI_TAB_W,

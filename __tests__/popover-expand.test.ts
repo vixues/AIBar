@@ -186,6 +186,53 @@ describe('NSPopoverTouchBarItem expand/collapse', () => {
     kernel.destroy();
   });
 
+  it('surface popover keeps declared child order (emoji category rail stays left)', async () => {
+    const backend = new FakeBackend(720);
+    const kernel = new AIBarKernel({
+      adapter: makeAdapter(),
+      definition: { defaultItemIdentifiers: [] },
+      density: 'compact',
+    });
+    kernel.attach(backend, {});
+    kernel.register({ ...childButton('send'), zone: 'contextual' });
+    const cats = defineItem({
+      id: asItemIdentifier('t.aibar.segmented.emoji-category'),
+      type: 'segmented',
+      labelKey: 'cats',
+      parity: 'menu:emoji',
+      showsLabel: false,
+      width: { min: 80, preferred: 160, max: 200 },
+      segments: [
+        { key: 'a', labelKey: 'a' },
+        { key: 'b', labelKey: 'b' },
+      ],
+    });
+    const scr = defineItem({
+      id: asItemIdentifier('t.aibar.scrubber.emoji'),
+      type: 'scrubber',
+      labelKey: 'emoji',
+      parity: 'menu:emoji',
+      visibilityPriority: 1000,
+      width: { min: 160, preferred: 400, max: 640, flex: 2 },
+    });
+    const parent = defineItem({
+      id: asItemIdentifier('t.aibar.popover.emoji'),
+      type: 'popover',
+      labelKey: 'emoji',
+      parity: 'menu:emoji',
+      children: [cats, scr],
+    });
+    kernel.register({ ...parent, zone: 'contextual' });
+    await settle();
+    kernel.openPopover(parent.id);
+    await settle();
+    const boxes = latestBoxes(backend);
+    expect(boxes.get(cats.id as string)).toBeTypeOf('number');
+    expect(boxes.get(scr.id as string)).toBeTypeOf('number');
+    expect(boxes.get(cats.id as string)!).toBeLessThan(boxes.get(scr.id as string)!);
+    kernel.destroy();
+  });
+
   it('showPopover replaces contextual items; dismissPopover restores ground', async () => {
     const backend = new FakeBackend();
     const kernel = new AIBarKernel({
