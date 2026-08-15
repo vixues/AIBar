@@ -19,7 +19,9 @@
     "attw": "npm run attw --workspaces --if-present",
     "publint": "npm run publint --workspaces --if-present",
     "changeset": "changeset",
-    "capture:readme": "node scripts/capture-readme.mjs"
+    "capture:readme": "node scripts/capture-readme.mjs",
+    "capture:gif": "node scripts/capture-playground-gif.mjs",
+    "capture:gif:light": "node scripts/capture-playground-gif.mjs light"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.0",

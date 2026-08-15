@@ -5,6 +5,7 @@
  * Providers own slices; invalidations coalesce in a trailing window (default
  * 32 ms) and unchanged slices short-circuit downstream re-evaluation.
  */
+import { setTimeout } from './timers';
 
 export interface FocusDescriptor {
   kind: string; // 'input' | 'canvas' | 'list' | …

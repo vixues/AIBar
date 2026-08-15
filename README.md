@@ -50,10 +50,16 @@ The catalog in `examples/playground/src/catalog.ts` is generic on purpose —
 copy it and swap in your own items. Toggle light / dark from the nav, or open
 `?theme=light` / `?theme=dark`.
 
+<p align="center">
+  <img src="docs/images/playground-send-emoji-light.gif" alt="Light playground: send a message, then expand the emoji picker" width="880" />
+</p>
+
 Refresh README screenshots after UI changes:
 
 ```bash
 npm run capture:readme
+npm run capture:gif
+npm run capture:gif:light
 ```
 
 ## Versioning

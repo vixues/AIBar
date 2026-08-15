@@ -51,6 +51,7 @@ import type {
   SurfaceInputSink,
   SurfacePresentation,
 } from './renderer-backend';
+import { clearTimeout, queueMicrotask, setTimeout } from './timers';
 
 const OVERFLOW_ID = asItemIdentifier('core.aibar.popover.overflow');
 const OVERFLOW_PALETTE_ID = asItemIdentifier('core.aibar.button.overflow-palette');
