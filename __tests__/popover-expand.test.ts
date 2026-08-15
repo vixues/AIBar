@@ -448,6 +448,57 @@ describe('NSPopoverTouchBarItem expand/collapse', () => {
     kernel.destroy();
   });
 
+  it('inline expand occupies the trigger slot (does not jump to the tail)', async () => {
+    const backend = new FakeBackend(720);
+    const kernel = new AIBarKernel({
+      adapter: makeAdapter(),
+      definition: { defaultItemIdentifiers: [] },
+      density: 'compact',
+    });
+    kernel.attach(backend, {});
+    const leading = childButton('model');
+    const trailing = childButton('emoji');
+    const optA = childButton('auto');
+    const optB = childButton('off');
+    const parent = defineItem({
+      id: asItemIdentifier('t.aibar.popover.thinking'),
+      type: 'popover',
+      expand: 'inline',
+      labelKey: 'thinking',
+      parity: 'menu:thinking',
+      children: [optA, optB],
+    });
+    kernel.register({ ...leading, zone: 'contextual' });
+    kernel.register({ ...parent, zone: 'contextual' });
+    kernel.register({ ...trailing, zone: 'contextual' });
+    await settle();
+
+    const before = latestBoxes(backend);
+    const triggerX = before.get(parent.id as string);
+    const trailingX = before.get(trailing.id as string);
+    expect(triggerX).toBeTypeOf('number');
+    expect(trailingX).toBeTypeOf('number');
+    expect(triggerX!).toBeLessThan(trailingX!);
+
+    kernel.openPopover(parent.id);
+    await settle();
+
+    const after = latestBoxes(backend);
+    const collapseX = after.get('core.aibar.button.inline-collapse');
+    const optAX = after.get(optA.id as string);
+    const optBX = after.get(optB.id as string);
+    const trailingAfter = after.get(trailing.id as string);
+    expect(collapseX).toBe(triggerX);
+    expect(optAX).toBeGreaterThan(collapseX!);
+    expect(optBX).toBeGreaterThan(optAX!);
+    expect(optBX!).toBeLessThan(trailingAfter!);
+
+    await kernel.invoke(optA.id);
+    await settle();
+    expect(latestBoxes(backend).get(parent.id as string)).toBe(triggerX);
+    kernel.destroy();
+  });
+
   it('inline expand collapse key dismisses like NSPopoverTouchBarItem.showsCloseButton', async () => {
     const backend = new FakeBackend(720);
     const kernel = new AIBarKernel({

@@ -265,4 +265,90 @@ describe('resolver P1–P5 invariants', () => {
     expect(plan.contextual[0]?.id).toBe(send.id);
     expect(plan.contextual[0]?.x).toBeLessThan(plan.contextual[1]!.x);
   });
+
+  it('inserts newcomers into a vacated previous slot instead of the tail', () => {
+    const model = defineItem({
+      id: asItemIdentifier('t.aibar.button.model'),
+      type: 'button',
+      labelKey: 'Model',
+      showsLabel: true,
+      parity: 'menu:model',
+      zone: 'contextual',
+    });
+    const thinking = defineItem({
+      id: asItemIdentifier('t.aibar.popover.thinking'),
+      type: 'button',
+      labelKey: 'Thinking',
+      showsLabel: true,
+      parity: 'menu:thinking',
+      zone: 'contextual',
+    });
+    const emoji = defineItem({
+      id: asItemIdentifier('t.aibar.button.emoji'),
+      type: 'button',
+      labelKey: 'Emoji',
+      showsLabel: true,
+      parity: 'menu:emoji',
+      zone: 'contextual',
+    });
+    const collapse = defineItem({
+      id: asItemIdentifier('core.aibar.button.inline-collapse'),
+      type: 'button',
+      labelKey: 'Collapse',
+      showsLabel: false,
+      parity: 'key:Escape',
+      zone: 'contextual',
+      visibilityPriority: 10_000,
+    });
+    const auto = defineItem({
+      id: asItemIdentifier('t.aibar.button.auto'),
+      type: 'button',
+      labelKey: 'Auto',
+      showsLabel: true,
+      parity: 'menu:auto',
+      zone: 'contextual',
+    });
+    const base = {
+      ctx: EMPTY_CONTEXT,
+      requiredIds: new Set(),
+      pinnedIds: new Set(),
+      surfaceWidth: 720,
+      density: 'compact' as const,
+      measureText: (text: string) => text.length * 7,
+      resolveLabel: (key: string) => key,
+      frecency: () => 0,
+      now: 10_000,
+      suggestionPolicy: { minConfidence: 0.5, maxVisible: 2, allowEffects: ['read' as const] },
+      leadingInset: 0,
+    };
+    const first = resolve({
+      ...base,
+      items: [model, thinking, emoji],
+      baseOrder: new Map([
+        [model.id, 0],
+        [thinking.id, 1],
+        [emoji.id, 2],
+      ]),
+      stability: EMPTY_STABILITY,
+    });
+    expect(first.contextual.map((p) => p.id)).toEqual([model.id, thinking.id, emoji.id]);
+
+    const second = resolve({
+      ...base,
+      items: [model, collapse, auto, emoji],
+      baseOrder: new Map([
+        [model.id, 0],
+        [collapse.id, 1],
+        [auto.id, 1.5],
+        [emoji.id, 2],
+      ]),
+      stability: first.nextStability,
+    });
+    expect(second.contextual.map((p) => p.id)).toEqual([
+      model.id,
+      collapse.id,
+      auto.id,
+      emoji.id,
+    ]);
+  });
 });

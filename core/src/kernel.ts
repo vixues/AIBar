@@ -1365,7 +1365,14 @@ export class AIBarKernel {
         this.closeSubSurface();
       },
     });
-    this.noteBaseOrder(collapse.id);
+    // Pack in the trigger's slot — appending via noteBaseOrder sent the
+    // expanded options to the tail of the strip on click.
+    const triggerIndex = this.baseOrder.get(triggerId) ?? this.baseOrderCounter;
+    const childCount = trigger.children.length;
+    this.baseOrder.set(INLINE_COLLAPSE_ID, triggerIndex);
+    trigger.children.forEach((child, i) => {
+      this.baseOrder.set(child.id, triggerIndex + (i + 1) / (childCount + 2));
+    });
     const out: AIBarItem[] = [];
     for (const item of items) {
       if (item.id !== triggerId) {
@@ -1374,7 +1381,6 @@ export class AIBarKernel {
       }
       out.push(collapse);
       for (const child of trigger.children) {
-        this.noteBaseOrder(child.id);
         out.push({ ...child, zone: 'contextual' });
       }
     }

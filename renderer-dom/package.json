@@ -20,7 +20,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": {
+      "types": "./dist/styles.css.d.ts",
+      "default": "./dist/styles.css"
+    }
   },
   "files": [
     "dist",
@@ -28,7 +31,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsup && cp src/styles.css dist/styles.css",
+    "build": "tsup && cp src/styles.css dist/styles.css && cp src/styles.css.d.ts dist/styles.css.d.ts",
     "publint": "publint",
     "attw": "attw --pack --format table --ignore-rules cjs-resolves-to-esm --exclude-entrypoints ./styles.css"
   },

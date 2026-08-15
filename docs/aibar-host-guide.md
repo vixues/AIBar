@@ -5,7 +5,8 @@ host-agnostic: you implement `AIBarHostAdapter`, publish items, and feed
 context. You do **not** fork the kernel or import LeAgent internals.
 
 Full contract: [aibar-architecture.md](./aibar-architecture.md).
-Runnable samples: `examples/hello-world` and `examples/vanilla-dom`.
+Runnable sample: [`examples/playground`](../examples/playground) (React at `/`,
+vanilla DOM at `/vanilla.html`).
 
 ---
 
@@ -95,9 +96,10 @@ export function AppBar() {
 }
 ```
 
-`createDefaultHostAdapter` fills in English chrome labels, text-glyph icons,
-and in-memory persistence. Replace any field to integrate your i18n, icon set,
-or storage.
+`createDefaultHostAdapter` fills in English chrome labels, Lucide-style SVG
+icons, in-memory persistence, and dark `--aibar-*` tokens. Pass `theme` to
+switch light/dark (`DEFAULT_THEME_TOKENS_LIGHT` / `_DARK`), or replace
+`resolveIcon` with your own set.
 
 `AIBarSurface` does **not** write `--aibar-height` unless you pass
 `heightVariable="--aibar-height"` (or any name you pad against).
@@ -190,7 +192,8 @@ call `kernel.pin`, `setItemHidden`, `setCustomOrder`, `enterCustomizing` /
 `exitCustomizing`. The library does not ship a customize sheet in 0.1.
 
 Theme: implement `adapter.theme.tokens()` returning `--aibar-*` CSS variables,
-or rely on the renderer’s reference dark/light fallbacks.
+or pass `DEFAULT_THEME_TOKENS_LIGHT` / `DEFAULT_THEME_TOKENS_DARK` from
+`@aibar/core`. The renderer also ships dark/light fallbacks.
 
 ---
 

@@ -17,7 +17,6 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "@aibar/example-hello-world",
-    "@aibar/example-vanilla-dom"
+    "@aibar/example-playground"
   ]
 }

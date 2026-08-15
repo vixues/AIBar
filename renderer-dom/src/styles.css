@@ -9,21 +9,21 @@
 
 .aibar-root {
   /* ——— reference dark theme (fallback chain targets) ——— */
-  --_aibar-surface-bg: hsl(240 6% 10%);
-  --_aibar-surface-border: hsl(240 5% 22%);
-  --_aibar-item-bg: hsl(240 5% 16%);
-  --_aibar-item-bg-hover: hsl(240 5% 21%);
-  --_aibar-item-bg-pressed: hsl(240 5% 13%);
-  --_aibar-item-bg-active: hsl(240 5% 26%);
-  --_aibar-item-fg: hsl(240 8% 92%);
-  --_aibar-item-fg-muted: hsl(240 5% 62%);
-  --_aibar-item-fg-disabled: hsl(240 5% 42%);
-  --_aibar-accent: hsl(212 92% 60%);
-  --_aibar-accent-fg: hsl(0 0% 100%);
+  --_aibar-surface-bg: hsl(0 0% 18%);
+  --_aibar-surface-border: hsl(0 0% 26%);
+  --_aibar-item-bg: hsl(0 0% 24%);
+  --_aibar-item-bg-hover: hsl(0 0% 29%);
+  --_aibar-item-bg-pressed: hsl(0 0% 20%);
+  --_aibar-item-bg-active: hsl(0 0% 32%);
+  --_aibar-item-fg: hsl(0 0% 93%);
+  --_aibar-item-fg-muted: hsl(0 0% 62%);
+  --_aibar-item-fg-disabled: hsl(0 0% 42%);
+  --_aibar-accent: hsl(0 0% 100%);
+  --_aibar-accent-fg: hsl(0 0% 10%);
   --_aibar-danger: hsl(0 72% 58%);
   --_aibar-live: hsl(168 70% 45%);
-  --_aibar-suggestion: hsl(262 70% 66%);
-  --_aibar-focus-ring: hsl(212 92% 60%);
+  --_aibar-suggestion: hsl(262 70% 72%);
+  --_aibar-focus-ring: hsl(0 0% 100%);
 
   /* ——— motion tokens (design §4.1) ——— */
   --aibar-motion-fast: 120ms;
@@ -48,17 +48,26 @@
   --_live: var(--aibar-live, var(--_aibar-live));
   --_suggestion: var(--aibar-suggestion, var(--_aibar-suggestion));
   --_focus-ring: var(--aibar-focus-ring, var(--_aibar-focus-ring));
-  --_item-radius: var(--aibar-item-radius, 8px);
-  --_surface-radius: var(--aibar-surface-radius, 12px);
+  --_item-radius: var(--aibar-item-radius, 10px);
+  --_surface-radius: var(--aibar-surface-radius, 16px);
+  /* Commas inside var() fallbacks are ambiguous — keep the hairline here. */
+  --_aibar-surface-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    inset 0 0 0 1px color-mix(in srgb, var(--_border) 90%, transparent);
 
   position: relative;
   box-sizing: border-box;
   width: 100%;
   display: block;
-  background: var(--_bg);
-  border-top: 1px solid var(--_border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--_bg) 70%, white) 0%,
+    var(--_bg) 18%,
+    var(--_bg) 100%
+  );
+  border: none;
   border-radius: var(--_surface-radius);
-  box-shadow: var(--aibar-surface-shadow, 0 -1px 3px rgb(0 0 0 / 0.15));
+  box-shadow: var(--aibar-surface-shadow, var(--_aibar-surface-shadow));
   contain: strict; /* D2: isolated from host document layout */
   overflow: hidden;
   font-family: var(--aibar-font-family, inherit);
@@ -70,15 +79,18 @@
 
 @media (prefers-color-scheme: light) {
   .aibar-root {
-    --_aibar-surface-bg: hsl(240 8% 96%);
-    --_aibar-surface-border: hsl(240 6% 84%);
-    --_aibar-item-bg: hsl(240 8% 90%);
-    --_aibar-item-bg-hover: hsl(240 8% 85%);
-    --_aibar-item-bg-pressed: hsl(240 8% 80%);
-    --_aibar-item-bg-active: hsl(240 8% 78%);
-    --_aibar-item-fg: hsl(240 8% 14%);
-    --_aibar-item-fg-muted: hsl(240 5% 42%);
-    --_aibar-item-fg-disabled: hsl(240 5% 62%);
+    --_aibar-surface-bg: hsl(0 0% 94%);
+    --_aibar-surface-border: hsl(0 0% 88%);
+    --_aibar-item-bg: hsl(0 0% 100%);
+    --_aibar-item-bg-hover: hsl(0 0% 97%);
+    --_aibar-item-bg-pressed: hsl(0 0% 92%);
+    --_aibar-item-bg-active: hsl(0 0% 90%);
+    --_aibar-item-fg: hsl(0 0% 10%);
+    --_aibar-item-fg-muted: hsl(0 0% 45%);
+    --_aibar-item-fg-disabled: hsl(0 0% 62%);
+    --_aibar-accent: hsl(0 0% 10%);
+    --_aibar-accent-fg: hsl(0 0% 100%);
+    --_aibar-focus-ring: hsl(0 0% 10%);
   }
 }
 
@@ -384,7 +396,11 @@
   flex: none;
 }
 
-.aibar-item__icon svg { width: 100%; height: 100%; }
+.aibar-item__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 .aibar-item__label {
   overflow: hidden;
@@ -412,6 +428,10 @@
   color: #fff;
   font-weight: 600;
   letter-spacing: 0.01em;
+  padding: 0 8px;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: 1;
 }
 .aibar-item[data-type='mainButton'] .aibar-item__label {
   font-weight: 600;

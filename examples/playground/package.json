@@ -1,10 +1,12 @@
 {
-  "name": "@aibar/example-hello-world",
+  "name": "@aibar/example-playground",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aibar/core": "0.1.0",

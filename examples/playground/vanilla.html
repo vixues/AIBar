@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AIBar Playground · Vanilla</title>
+    <script>
+      (function () {
+        try {
+          var q = new URLSearchParams(location.search).get('theme');
+          var t = q === 'light' || q === 'dark' ? q : localStorage.getItem('aibar-example-theme');
+          var dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="app">
+      <header class="nav">
+        <div class="nav-inner">
+          <a class="brand" href="/">AIBar</a>
+          <span class="nav-pill">Playground</span>
+          <div class="nav-spacer"></div>
+          <nav class="nav-hosts" aria-label="Example host">
+            <a class="nav-link" href="/">React</a>
+            <a class="nav-link is-active" href="/vanilla.html" aria-current="page">Vanilla</a>
+          </nav>
+          <a class="nav-link" href="https://github.com/vixues/AIBar/blob/main/docs/aibar-host-guide.md">Docs</a>
+          <a class="nav-link" href="https://github.com/vixues/AIBar">GitHub</a>
+          <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle color scheme">
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2" /><path d="M12 20v2" />
+              <path d="m4.93 4.93 1.41 1.41" /><path d="m17.66 17.66 1.41 1.41" />
+              <path d="M2 12h2" /><path d="M20 12h2" />
+              <path d="m6.34 17.66-1.41 1.41" /><path d="m19.07 4.93-1.41 1.41" />
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <main class="stage">
+        <h1 class="lede">Context-aware action surface</h1>
+        <p class="sub">
+          Hosts mount a strip of declarative items. Membership and geometry
+          resolve from live context. Agents publish data, never code.
+        </p>
+        <section class="preview" aria-label="AIBar playground">
+          <div class="preview-thread" id="thread">
+            <div class="preview-empty" id="empty" hidden>
+              <h2>Try the strip</h2>
+              <p>Send a message, expand Thinking, open Emoji, or narrow the window until items overflow.</p>
+            </div>
+            <div id="transcript"></div>
+          </div>
+          <div class="preview-dock">
+            <div id="bar" class="aibar-host"></div>
+            <div class="composer">
+              <textarea id="draft" rows="1" placeholder="Message"></textarea>
+            </div>
+          </div>
+        </section>
+        <p class="caption">Vanilla · @aibar/core + @aibar/renderer-dom · compact density</p>
+      </main>
+    </div>
+    <script type="module" src="/src/vanilla/main.ts"></script>
+  </body>
+</html>

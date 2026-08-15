@@ -26,11 +26,17 @@ describe('DEFAULT_CHROME_LABELS', () => {
     expect(resolveChromeLabel((key) => key, 'aibar.deny')).toBe('Deny');
   });
 
-  it('maps named icon refs to glyphs instead of truncated latin', () => {
+  it('maps named icon refs to Lucide-style SVG, and keeps emoji as text', () => {
     const adapter = createDefaultHostAdapter({
       dispatchAction: async () => ({ ok: true }),
     });
-    expect(adapter.resolveIcon('send')).toEqual({ kind: 'text', text: '➤' });
+    const send = adapter.resolveIcon('send');
+    expect(send.kind).toBe('svg');
+    if (send.kind === 'svg') {
+      expect(send.svg).toContain('viewBox="0 0 24 24"');
+      expect(send.svg).toContain('stroke="currentColor"');
+    }
+    expect(adapter.resolveIcon('paperclip').kind).toBe('svg');
     expect(adapter.resolveIcon('👋')).toEqual({ kind: 'text', text: '👋' });
   });
 

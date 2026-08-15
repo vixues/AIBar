@@ -393,7 +393,8 @@ Optional: `actionAllowlist`, `confirmEffect`, `hotkeys`, `theme`, `intent`,
 `fnModeItems`, `telemetry`.
 
 `createDefaultHostAdapter({ dispatchAction, ...overrides })` supplies English
-chrome labels, text-glyph icons, memory persistence, and an empty provider list.
+chrome labels, Lucide-style SVG icons, memory persistence, dark reference
+tokens, and an empty provider list. Pass `theme` for light/dark.
 
 Kernel-synthesized `labelKey`s the host catalog should cover (defaults exist):
 

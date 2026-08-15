@@ -413,17 +413,49 @@ function mergeFamilies(candidates: Candidate[]): Candidate[] {
 }
 
 /**
- * Positional anchoring (§6.5): survivors keep the previous display order;
- * newcomers append at the zone tail in base order (P5).
+ * Positional anchoring (§6.5): survivors keep the previous display order (P5).
+ * Newcomers fill the first vacated previous slot (inline-expand replacements
+ * occupy the trigger hole). If nothing was vacated they append at the tail.
  */
 function anchorOrder(placed: Candidate[], previous: readonly AIBarItemIdentifier[]): Candidate[] {
   const prevIndex = new Map<AIBarItemIdentifier, number>();
   previous.forEach((id, i) => prevIndex.set(id, i));
-  const survivors = placed.filter((c) => prevIndex.has(c.item.id));
+  const byId = new Map(placed.map((c) => [c.item.id, c] as const));
   const newcomers = placed.filter((c) => !prevIndex.has(c.item.id));
-  survivors.sort((a, b) => prevIndex.get(a.item.id)! - prevIndex.get(b.item.id)!);
   newcomers.sort((a, b) => a.baseIndex - b.baseIndex);
-  return [...survivors, ...newcomers];
+
+  if (previous.length === 0 || newcomers.length === 0) {
+    const survivors = placed.filter((c) => prevIndex.has(c.item.id));
+    survivors.sort((a, b) => prevIndex.get(a.item.id)! - prevIndex.get(b.item.id)!);
+    return [...survivors, ...newcomers];
+  }
+
+  const used = new Set<AIBarItemIdentifier>();
+  const out: Candidate[] = [];
+  let spliced = false;
+  const spliceNewcomers = () => {
+    if (spliced) return;
+    spliced = true;
+    for (const c of newcomers) {
+      out.push(c);
+      used.add(c.item.id);
+    }
+  };
+
+  for (const id of previous) {
+    const survivor = byId.get(id);
+    if (survivor) {
+      out.push(survivor);
+      used.add(id);
+    } else {
+      spliceNewcomers();
+    }
+  }
+  if (!spliced) spliceNewcomers();
+  for (const c of placed) {
+    if (!used.has(c.item.id)) out.push(c);
+  }
+  return out;
 }
 
 /** Composer Send / other mainButtons stay flush-left regardless of baseOrder. */

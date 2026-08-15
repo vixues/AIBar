@@ -18,7 +18,8 @@
     "lint": "eslint .",
     "attw": "npm run attw --workspaces --if-present",
     "publint": "npm run publint --workspaces --if-present",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "capture:readme": "node scripts/capture-readme.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.0",
