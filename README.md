@@ -7,9 +7,6 @@ Agents publish **data, never code**.
 <p align="center">
   <img src="docs/images/playground-light.png" alt="AIBar playground, light theme" width="880" />
 </p>
-<p align="center">
-  <img src="docs/images/playground-dark.png" alt="AIBar playground, dark theme" width="880" />
-</p>
 
 LeAgent is one host. This repository is the library.
 
