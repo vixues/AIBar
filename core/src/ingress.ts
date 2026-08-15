@@ -26,6 +26,7 @@ import {
 } from '@aibar/protocol';
 import { itemFromSpec, type AIBarItem } from './items';
 import type { AIBarKernel } from './kernel';
+import { structuredClone } from './timers';
 
 export interface PublisherSession {
   publisherId: string;
