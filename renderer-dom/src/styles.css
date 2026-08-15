@@ -1,0 +1,1273 @@
+/**
+ * AIBar DOM renderer styles (docs/aibar-design.md §3–§7).
+ *
+ * Reference dark/light themes ship as fallbacks: hosts override appearance
+ * only through the --aibar-* token protocol (design §4). Items are keys on an
+ * instrument, not floating cards: one ground color, one height, a continuous
+ * radius language. Motion is transform/opacity only (arch §7.4 D5).
+ */
+
+.aibar-root {
+  /* ——— reference dark theme (fallback chain targets) ——— */
+  --_aibar-surface-bg: hsl(240 6% 10%);
+  --_aibar-surface-border: hsl(240 5% 22%);
+  --_aibar-item-bg: hsl(240 5% 16%);
+  --_aibar-item-bg-hover: hsl(240 5% 21%);
+  --_aibar-item-bg-pressed: hsl(240 5% 13%);
+  --_aibar-item-bg-active: hsl(240 5% 26%);
+  --_aibar-item-fg: hsl(240 8% 92%);
+  --_aibar-item-fg-muted: hsl(240 5% 62%);
+  --_aibar-item-fg-disabled: hsl(240 5% 42%);
+  --_aibar-accent: hsl(212 92% 60%);
+  --_aibar-accent-fg: hsl(0 0% 100%);
+  --_aibar-danger: hsl(0 72% 58%);
+  --_aibar-live: hsl(168 70% 45%);
+  --_aibar-suggestion: hsl(262 70% 66%);
+  --_aibar-focus-ring: hsl(212 92% 60%);
+
+  /* ——— motion tokens (design §4.1) ——— */
+  --aibar-motion-fast: 120ms;
+  --aibar-motion-base: 160ms;
+  --aibar-motion-slow: 240ms;
+  --aibar-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --aibar-ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* resolved tokens: host mapping wins, reference theme as fallback */
+  --_bg: var(--aibar-surface-bg, var(--_aibar-surface-bg));
+  --_border: var(--aibar-surface-border, var(--_aibar-surface-border));
+  --_item-bg: var(--aibar-item-bg, var(--_aibar-item-bg));
+  --_item-bg-hover: var(--aibar-item-bg-hover, var(--_aibar-item-bg-hover));
+  --_item-bg-pressed: var(--aibar-item-bg-pressed, var(--_aibar-item-bg-pressed));
+  --_item-bg-active: var(--aibar-item-bg-active, var(--_aibar-item-bg-active));
+  --_fg: var(--aibar-item-fg, var(--_aibar-item-fg));
+  --_fg-muted: var(--aibar-item-fg-muted, var(--_aibar-item-fg-muted));
+  --_fg-disabled: var(--aibar-item-fg-disabled, var(--_aibar-item-fg-disabled));
+  --_accent: var(--aibar-accent, var(--_aibar-accent));
+  --_accent-fg: var(--aibar-accent-fg, var(--_aibar-accent-fg));
+  --_danger: var(--aibar-danger, var(--_aibar-danger));
+  --_live: var(--aibar-live, var(--_aibar-live));
+  --_suggestion: var(--aibar-suggestion, var(--_aibar-suggestion));
+  --_focus-ring: var(--aibar-focus-ring, var(--_aibar-focus-ring));
+  --_item-radius: var(--aibar-item-radius, 8px);
+  --_surface-radius: var(--aibar-surface-radius, 12px);
+
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  display: block;
+  background: var(--_bg);
+  border-top: 1px solid var(--_border);
+  border-radius: var(--_surface-radius);
+  box-shadow: var(--aibar-surface-shadow, 0 -1px 3px rgb(0 0 0 / 0.15));
+  contain: strict; /* D2: isolated from host document layout */
+  overflow: hidden;
+  font-family: var(--aibar-font-family, inherit);
+  font-weight: var(--aibar-font-weight, 500);
+  direction: ltr; /* RTL explicitly unsupported in v1 (design §11.2) */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (prefers-color-scheme: light) {
+  .aibar-root {
+    --_aibar-surface-bg: hsl(240 8% 96%);
+    --_aibar-surface-border: hsl(240 6% 84%);
+    --_aibar-item-bg: hsl(240 8% 90%);
+    --_aibar-item-bg-hover: hsl(240 8% 85%);
+    --_aibar-item-bg-pressed: hsl(240 8% 80%);
+    --_aibar-item-bg-active: hsl(240 8% 78%);
+    --_aibar-item-fg: hsl(240 8% 14%);
+    --_aibar-item-fg-muted: hsl(240 5% 42%);
+    --_aibar-item-fg-disabled: hsl(240 5% 62%);
+  }
+}
+
+.aibar-root[data-density='regular'] {
+  height: 52px;
+  padding: 0;
+  --_item-h: 38px;
+  --_icon: 18px;
+  font-size: 13px;
+}
+
+.aibar-root[data-density='compact'] {
+  /* Vertical centering keeps equal insets under border-box + 1px chrome. */
+  height: 36px;
+  padding: 0;
+  --_item-h: 28px;
+  --_icon: 15px;
+  font-size: 11px;
+}
+
+/* ——— zones ——— */
+
+.aibar-escape {
+  position: absolute;
+  /* Inset from the surface edge so ✕ clears the radius / border (design §2.1).
+     Width stays inside the resolver's escapeZoneWidth reservation. */
+  left: 8px;
+  top: 50%;
+  margin-top: calc(var(--_item-h) / -2);
+  width: 36px; /* regular escapeZoneWidth 44 − left inset 8 */
+  height: var(--_item-h);
+  z-index: 2; /* above .aibar-items so showsCloseButton ✕ receives hits */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Smooth Esc chrome with the presentation crossfade (design §7.1). */
+  transition:
+    width var(--aibar-motion-base) var(--aibar-ease-out),
+    left var(--aibar-motion-base) var(--aibar-ease-out),
+    opacity var(--aibar-motion-base) var(--aibar-ease-out);
+}
+
+/* Appendix B: empty Escape collapses so ground presentation flushes left.
+   Subsurface presentation owns its own Esc chrome — whole-surface swap, not
+   a leadingInset nudge of surviving ground items. */
+.aibar-escape:not([data-aibar-escape-id]),
+.aibar-escape:empty {
+  width: 0;
+  left: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aibar-escape[data-leaving='true'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.aibar-root[data-density='compact'] .aibar-escape {
+  left: 6px;
+  width: 22px; /* compact escapeZoneWidth 28 − left inset 6 */
+}
+
+.aibar-root[data-density='compact'] .aibar-escape:not([data-aibar-escape-id]),
+.aibar-root[data-density='compact'] .aibar-escape:empty {
+  width: 0;
+  left: 0;
+}
+
+/* Escape slot: transparent chrome; hover recolors the icon (not a fill chip). */
+.aibar-escape .aibar-item {
+  position: static;
+  transform: none;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: transparent;
+  border-radius: var(--_item-radius);
+  scale: 1;
+  color: var(--_fg-muted);
+}
+.aibar-escape .aibar-item:hover {
+  background: transparent;
+  color: var(--_fg);
+}
+.aibar-escape .aibar-item:active {
+  background: transparent;
+  color: var(--_accent);
+  scale: 0.97;
+}
+.aibar-escape .aibar-item:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: 1px;
+}
+.aibar-escape .aibar-item__icon {
+  display: inline-flex;
+  width: var(--_icon);
+  height: var(--_icon);
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+.aibar-escape .aibar-item__icon svg {
+  width: var(--_icon);
+  height: var(--_icon);
+  stroke: currentColor;
+}
+
+.aibar-items {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  margin-top: calc(var(--_item-h) / -2);
+  height: var(--_item-h);
+  /* Layer is full-bleed for absolute children; empty regions must not steal
+     Escape Zone clicks (NSPopoverTouchBarItem.showsCloseButton). */
+  pointer-events: none;
+}
+
+.aibar-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ——— items ——— */
+
+.aibar-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: var(--_item-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: var(--_item-radius);
+  background: var(--_item-bg);
+  color: var(--_fg);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  will-change: transform;
+  /* Geometry: transform translateX. Motion uses independent `scale`/`translate`
+     so press + enter/leave never fight packing (arch §7.4 D5). Default: no
+     transform transition — survivors opt in via [data-moving]. */
+  transition:
+    background-color var(--aibar-motion-fast) var(--aibar-ease-out),
+    opacity var(--aibar-motion-base) var(--aibar-ease-out),
+    scale var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+
+.aibar-root[data-density='compact'] .aibar-item {
+  gap: 4px;
+  padding: 0 6px;
+}
+
+.aibar-item:hover { background: var(--_item-bg-hover); }
+.aibar-item[data-type='custom']:hover,
+.aibar-item[data-type='custom']:active {
+  background: transparent;
+  scale: 1;
+}
+/* Pressed: bg + scale 0.97 via independent CSS scale (design §6.1). */
+.aibar-item:active:not([data-type='slider']):not([data-type='scrubber']):not([data-type='candidateList']):not([data-type='characterPicker']):not([data-type='label']):not([data-type='custom']) {
+  background: var(--_item-bg-pressed);
+  scale: 0.97;
+}
+
+.aibar-item:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: 2px;
+}
+
+/* Context-switch enter (vacate first, then enter — design §7.1). */
+.aibar-item[data-entering='true'] {
+  animation: aibar-enter var(--aibar-motion-base) var(--aibar-ease-out) 40ms backwards;
+}
+
+/* Survivor position interpolate (design §7.1): 160 ms transform only. */
+.aibar-item[data-moving='true'] {
+  transition:
+    transform var(--aibar-motion-base) var(--aibar-ease-out),
+    width var(--aibar-motion-base) var(--aibar-ease-out),
+    background-color var(--aibar-motion-fast) var(--aibar-ease-out),
+    opacity var(--aibar-motion-base) var(--aibar-ease-out),
+    scale var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+
+/*
+ * Design §7.1 popover whole-surface switch:
+ * bidirectional crossfade 160ms + subsurface translateX 8px→0; escape reverses.
+ * Layout uses `transform: translateX(box.x)`; motion uses the separate `translate`
+ * property so the two never fight (arch §7.4 D5).
+ */
+.aibar-item[data-leaving] {
+  z-index: 0;
+  pointer-events: none !important;
+  animation-duration: var(--aibar-motion-base);
+  animation-timing-function: var(--aibar-ease-out);
+  animation-fill-mode: forwards;
+}
+
+.aibar-item[data-leaving='ground'] {
+  animation-name: aibar-swap-fade-out;
+}
+
+.aibar-item[data-leaving='subsurface'] {
+  /* Escape reverses: subsurface exits along +8px while ground fades in. */
+  animation-name: aibar-swap-exit-subsurface;
+}
+
+/* Context-switch leave (design §7.1): opacity→0 + scale 0.96 / 120 ms. */
+.aibar-item[data-leaving='context'] {
+  animation-name: aibar-context-leave;
+  animation-duration: var(--aibar-motion-fast);
+}
+
+.aibar-item[data-swap-enter] {
+  z-index: 1;
+  animation-duration: var(--aibar-motion-base);
+  animation-timing-function: var(--aibar-ease-out);
+  animation-fill-mode: backwards;
+}
+
+.aibar-item[data-swap-enter='subsurface'] {
+  animation-name: aibar-swap-enter-subsurface;
+}
+
+.aibar-item[data-swap-enter='ground'] {
+  animation-name: aibar-swap-enter-ground;
+}
+
+.aibar-escape .aibar-item[data-swap-enter='subsurface'] {
+  animation-name: aibar-swap-fade-in;
+}
+
+@keyframes aibar-swap-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes aibar-swap-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes aibar-swap-enter-subsurface {
+  from { opacity: 0; translate: 8px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes aibar-swap-exit-subsurface {
+  from { opacity: 1; translate: 0 0; }
+  to { opacity: 0; translate: 8px 0; }
+}
+
+@keyframes aibar-swap-enter-ground {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Live Cluster morph (design §2.3): width step 240 ms ease-inout + soft pulse. */
+.aibar-item[data-morphing='true'] {
+  transition:
+    width var(--aibar-motion-slow, 240ms) var(--aibar-ease-inout),
+    transform var(--aibar-motion-slow, 240ms) var(--aibar-ease-inout);
+  animation: aibar-live-morph var(--aibar-motion-slow, 240ms) var(--aibar-ease-inout);
+}
+
+@keyframes aibar-enter {
+  from { opacity: 0; translate: 0 4px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes aibar-context-leave {
+  from { opacity: 1; scale: 1; }
+  to { opacity: 0; scale: 0.96; }
+}
+
+@keyframes aibar-live-morph {
+  from { filter: brightness(1); }
+  40% { filter: brightness(1.08); }
+  to { filter: brightness(1); }
+}
+
+.aibar-item__icon {
+  width: var(--_icon);
+  height: var(--_icon);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.aibar-item__icon svg { width: 100%; height: 100%; }
+
+.aibar-item__label {
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* provenance badges (design §6.3): themes may recolor, never remove */
+.aibar-item__badge { font-size: 0.75em; line-height: 1; flex: none; }
+.aibar-item[data-badge='agent'] .aibar-item__badge { color: var(--_suggestion); }
+.aibar-item[data-badge='remote'] .aibar-item__badge,
+.aibar-item[data-badge='user'] .aibar-item__badge { color: var(--_fg-muted); }
+
+/* principal emphasis: 12% accent blended into the ground (design §5.2) */
+.aibar-item[data-principal='true']:not([data-type='mainButton']) {
+  background: color-mix(in srgb, var(--_accent) 12%, var(--_item-bg));
+}
+
+/*
+ * mainButton (composer Send / Stop): solid CTA chip.
+ * Type size/family match candidate chips (inherit strip font); weight + contrast
+ * mark it as the primary action.
+ */
+.aibar-item[data-type='mainButton'] {
+  background: hsl(240 6% 22%);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.aibar-item[data-type='mainButton'] .aibar-item__label {
+  font-weight: 600;
+  color: inherit;
+  overflow: visible;
+}
+.aibar-item[data-type='mainButton']:hover {
+  background: hsl(240 6% 28%);
+  color: #fff;
+}
+.aibar-item[data-type='mainButton']:active {
+  background: hsl(240 6% 16%);
+  color: #fff;
+}
+
+/* ——— state matrix (design §6.1) ——— */
+
+.aibar-item[data-state='active'] { background: var(--_item-bg-active); }
+/* Toggle dual-channel: active ground + 2px accent dot (design §5.3). */
+.aibar-item[data-type='toggle'][data-state='active']::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--_accent);
+}
+
+.aibar-item[data-state='disabled'] {
+  opacity: 0.6;
+  color: var(--_fg-disabled);
+  pointer-events: none;
+}
+
+.aibar-item[data-state='loading'] {
+  color: var(--_fg-muted);
+  pointer-events: none; /* stuck loading must not swallow neighbor clicks */
+}
+.aibar-item[data-state='loading'] .aibar-item__icon,
+.aibar-item[data-state='streaming'] .aibar-item__icon { visibility: hidden; }
+.aibar-item[data-state='loading']::before,
+.aibar-item[data-state='streaming']::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--_fg-muted);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: aibar-spin 0.8s linear infinite;
+}
+
+.aibar-item[data-state='streaming'] .aibar-item__label {
+  color: var(--_fg-muted);
+  animation: aibar-shimmer 1s ease-in-out infinite alternate;
+}
+
+.aibar-item[data-state='error'] {
+  color: var(--_danger);
+  animation: aibar-shake var(--aibar-motion-base) var(--aibar-ease-out);
+}
+
+@keyframes aibar-spin { to { rotate: 360deg; } }
+@keyframes aibar-shimmer { from { opacity: 0.55; } to { opacity: 1; } }
+@keyframes aibar-shake {
+  0%, 100% { translate: 0 0; }
+  25% { translate: -4px 0; }
+  75% { translate: 4px 0; }
+}
+
+/* ——— type specializations ——— */
+
+.aibar-item[data-type='label'] {
+  background: transparent;
+  color: var(--_fg-muted);
+  cursor: default;
+  pointer-events: none;
+}
+
+.aibar-item[data-type='spacerSmall'],
+.aibar-item[data-type='spacerLarge'],
+.aibar-item[data-type='spacerFlexible'] {
+  background: transparent;
+  pointer-events: none;
+  padding: 0;
+}
+
+.aibar-item[data-type='segmented'] {
+  padding: 0;
+  min-width: 0;
+  overflow: hidden;
+  gap: 0;
+}
+
+/* Glyph category rail (iOS emoji tabs): circular chips; keep horizontal scroll. */
+.aibar-item[data-type='segmented'][data-tabs='glyph'] {
+  overflow: hidden;
+  background: transparent;
+  padding: 0 2px;
+}
+
+.aibar-segment__scroll {
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 0%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  pointer-events: auto;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 8px,
+    #000 calc(100% - 8px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 8px,
+    #000 calc(100% - 8px),
+    transparent 100%
+  );
+}
+.aibar-segment__scroll::-webkit-scrollbar { display: none; }
+.aibar-segment__scroll:active { cursor: grabbing; }
+
+/* Glyph tabs: no edge fade (circles must stay fully visible); still scrollable. */
+.aibar-item[data-tabs='glyph'] .aibar-segment__scroll {
+  align-items: center;
+  gap: 2px;
+  padding: 0 2px;
+  mask-image: none;
+  -webkit-mask-image: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.aibar-segment {
+  height: 100%;
+  flex: 1 1 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-right: 1px solid var(--_border);
+  transition: background-color var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+
+.aibar-segment:last-child { border-right: none; }
+.aibar-segment:hover { background: var(--_item-bg-hover); }
+.aibar-segment[aria-checked='true'] {
+  background: var(--_item-bg-active);
+  font-weight: 600;
+}
+.aibar-segment:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: -2px;
+}
+
+/* iOS-style emoji category tabs: circular selection chip, glyph only. */
+.aibar-segment[data-glyph='true'],
+.aibar-segment[data-icon='true'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  font-weight: 400;
+  transition:
+    background-color var(--aibar-motion-fast) var(--aibar-ease-out),
+    transform 90ms ease-out;
+}
+.aibar-segment[data-glyph='true']:hover,
+.aibar-segment[data-icon='true']:hover {
+  background: var(--_item-bg-hover);
+}
+.aibar-segment[data-glyph='true'][aria-checked='true'],
+.aibar-segment[data-icon='true'][aria-checked='true'] {
+  background: var(--_item-bg-active);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_border) 55%, transparent);
+}
+.aibar-segment[data-glyph='true']:focus-visible,
+.aibar-segment[data-icon='true']:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: 1px;
+}
+.aibar-segment__glyph {
+  font-family:
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Noto Color Emoji',
+    'EmojiOne Color',
+    sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  filter: grayscale(0.12);
+  transition: filter var(--aibar-motion-fast) var(--aibar-ease-out), transform 90ms ease-out;
+}
+.aibar-segment[aria-checked='true'] .aibar-segment__glyph {
+  filter: none;
+  transform: scale(1.06);
+}
+.aibar-segment__icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  align-items: center;
+  justify-content: center;
+}
+.aibar-segment__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* liveStatus: indeterminate ring, or determinate TouchBar meter (design §5.11) */
+.aibar-item[data-type='liveStatus'] { color: var(--_fg); gap: 8px; }
+.aibar-item[data-type='liveStatus'] .aibar-live-ring {
+  width: var(--_icon);
+  height: var(--_icon);
+  flex: none;
+}
+.aibar-live-ring circle.track { stroke: var(--_fg-disabled); }
+.aibar-live-ring circle.value {
+  stroke: var(--_live);
+  transition: stroke-dashoffset var(--aibar-motion-slow) var(--aibar-ease-inout);
+}
+.aibar-live-ring[data-indeterminate='true'] {
+  animation: aibar-pulse 1.6s ease-in-out infinite;
+}
+@keyframes aibar-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Phase icon chrome (replaces ring when LiveRunDescriptor.icon is set) */
+.aibar-item[data-type='liveStatus'] .aibar-live-icon {
+  width: var(--_icon);
+  height: var(--_icon);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--_live);
+}
+.aibar-item[data-type='liveStatus'] .aibar-live-icon svg {
+  width: var(--_icon);
+  height: var(--_icon);
+}
+.aibar-item[data-type='liveStatus'][data-phase='preparing'] .aibar-live-icon,
+.aibar-item[data-type='liveStatus'][data-phase='thinking'] .aibar-live-icon,
+.aibar-item[data-type='liveStatus'][data-phase='tooling'] .aibar-live-icon {
+  animation: aibar-pulse 1.6s ease-in-out infinite;
+}
+.aibar-item[data-type='liveStatus'][data-phase='answering'] .aibar-live-icon {
+  color: var(--_accent);
+}
+.aibar-item[data-type='liveStatus'][data-tone='warn'] .aibar-live-icon {
+  color: hsl(38 86% 52%);
+  animation: none;
+}
+.aibar-item[data-type='liveStatus'][data-tone='critical'] .aibar-live-icon {
+  color: var(--_danger);
+  animation: none;
+}
+
+/* TouchBar context meter — capsule track, scaleX fill, tone by pressure */
+.aibar-meter {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 28px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--_fg) 12%, transparent);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_fg) 8%, transparent);
+}
+.aibar-meter__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--_live);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform var(--aibar-motion-slow) var(--aibar-ease-inout),
+    background-color var(--aibar-motion-base) var(--aibar-ease-out);
+}
+.aibar-item[data-type='liveStatus'][data-tone='ok'] .aibar-meter__fill {
+  background: var(--_live);
+}
+.aibar-item[data-type='liveStatus'][data-tone='warn'] .aibar-meter__fill {
+  background: hsl(38 86% 52%);
+}
+.aibar-item[data-type='liveStatus'][data-tone='critical'] .aibar-meter__fill {
+  background: var(--_danger);
+}
+.aibar-item[data-type='liveStatus'][data-tone='warn'],
+.aibar-item[data-type='liveStatus'][data-tone='critical'] {
+  color: var(--_fg);
+}
+.aibar-item[data-type='liveStatus'] .aibar-item__label {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  font-size: 0.92em;
+}
+
+/* Stacked liveStatus: percent over full-width meter (composer density) */
+.aibar-item[data-type='liveStatus'][data-layout='stack'] {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  padding-inline: 5px;
+}
+.aibar-live-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+}
+.aibar-item[data-layout='stack'] .aibar-item__label {
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+.aibar-item[data-layout='stack'] .aibar-meter {
+  width: 100%;
+  height: 4px;
+}
+
+/* suggestion (design §5.13): dashed border + provenance glyph + dismiss */
+.aibar-item[data-type='suggestion'] {
+  background: transparent;
+  border: 1px dashed var(--_suggestion);
+  padding-right: 4px;
+}
+.aibar-item[data-type='suggestion'][data-tier='1'] { border-color: color-mix(in srgb, var(--_suggestion) 45%, transparent); }
+.aibar-item[data-type='suggestion'][data-tier='2'] { border-color: color-mix(in srgb, var(--_suggestion) 65%, transparent); }
+.aibar-item[data-type='suggestion'][data-tier='3'] { border-color: var(--_suggestion); }
+.aibar-suggestion-glyph { color: var(--_suggestion); flex: none; }
+.aibar-suggestion-body {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.aibar-suggestion-body:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+.aibar-suggestion-dismiss {
+  border: none;
+  background: transparent;
+  color: var(--_fg-muted);
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex: none;
+}
+.aibar-suggestion-dismiss:hover { background: var(--_item-bg-hover); color: var(--_fg); }
+
+/* approval (design §5.14): equal-weight Deny/Allow, Deny nearest Escape */
+.aibar-item[data-type='approval'] {
+  cursor: default;
+  gap: 8px;
+}
+.aibar-item[data-type='approval'][data-effect='destructive'] {
+  box-shadow: inset 2px 0 0 var(--_danger);
+}
+.aibar-approval-flag { color: var(--_danger); flex: none; }
+.aibar-approval-btn {
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  padding: 3px 10px;
+  cursor: pointer;
+  background: var(--_item-bg-hover);
+  color: var(--_fg);
+  transition: background-color var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+.aibar-approval-btn:hover { background: var(--_item-bg-active); }
+.aibar-approval-btn[data-decision='allow'] {
+  background: var(--_accent);
+  color: var(--_accent-fg);
+}
+.aibar-approval-btn:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: 1px;
+}
+
+/* Overflow floor (TouchBar ellipsis) — quiet trailing disclosure, not a card */
+.aibar-item[data-disclosure='overflow'] {
+  gap: 4px;
+  padding: 0 8px;
+  min-width: 36px;
+  color: var(--_fg-muted);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--_border) 80%, transparent);
+}
+.aibar-item[data-disclosure='overflow']:hover {
+  color: var(--_fg);
+  background: var(--_item-bg-hover);
+}
+.aibar-item[data-disclosure='overflow'] .aibar-item__icon {
+  font-size: 1.15em;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.aibar-item[data-disclosure='overflow'] .aibar-item__label {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85em;
+  font-weight: 600;
+  color: var(--_fg-muted);
+}
+.aibar-item[data-disclosure='overflow']:hover .aibar-item__label {
+  color: var(--_fg);
+}
+
+/* popover expand affordance (›) */
+.aibar-item[data-type='popover'] .aibar-popover-chevron {
+  color: var(--_fg-muted);
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Inline expand showsCloseButton — Escape-like chrome, no fill chip. */
+.aibar-item[data-aibar-id='core.aibar.button.inline-collapse'] {
+  background: transparent;
+  color: var(--_fg-muted);
+  padding-inline: 0;
+}
+.aibar-item[data-aibar-id='core.aibar.button.inline-collapse']:hover {
+  background: transparent;
+  color: var(--_fg);
+}
+.aibar-item[data-aibar-id='core.aibar.button.inline-collapse']:active {
+  background: transparent;
+  color: var(--_accent);
+}
+
+/* ——— slider (design §5.5): 4px track, accent fill, 14→18 thumb, value tooltip ——— */
+.aibar-item[data-type='slider'] {
+  cursor: default;
+  gap: 8px;
+  position: relative;
+}
+.aibar-slider {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 48px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+.aibar-slider__track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--_fg) 18%, transparent);
+  pointer-events: none;
+  overflow: hidden;
+}
+.aibar-slider__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--_accent);
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+.aibar-slider__input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin: 0;
+  height: 18px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+.aibar-slider__input::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+}
+.aibar-slider__input::-moz-range-track {
+  height: 4px;
+  background: transparent;
+}
+.aibar-slider__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  border: none;
+  background: var(--_accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--_bg) 40%, transparent);
+  transition: width var(--aibar-motion-fast) var(--aibar-ease-out),
+    height var(--aibar-motion-fast) var(--aibar-ease-out),
+    margin-top var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+.aibar-slider__input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: none;
+  background: var(--_accent);
+}
+.aibar-item[data-type='slider'][data-dragging='true'] .aibar-slider__input::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+}
+.aibar-item[data-type='slider'][data-dragging='true'] .aibar-slider__input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+}
+.aibar-slider__input:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: 2px;
+}
+.aibar-slider__value {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  translate: -50% 0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--_item-bg-active);
+  color: var(--_fg);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 3;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
+}
+.aibar-slider__value[hidden] { display: none !important; }
+
+/* ——— colorPicker: 12px swatch + inner stroke (design §5.9) ——— */
+.aibar-item[data-type='colorPicker'] {
+  cursor: default;
+  gap: 5px;
+}
+.aibar-swatch {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--_fg) 25%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--_bg) 55%, transparent);
+  cursor: pointer;
+  padding: 0;
+  transition: scale var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+.aibar-swatch:hover { scale: 1.15; }
+.aibar-swatch[data-selected='true'] {
+  box-shadow: 0 0 0 2px var(--_bg), 0 0 0 3.5px var(--_accent);
+}
+.aibar-swatch:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: 1px;
+}
+
+/* ——— candidateList / characterPicker: free-scroll strip (Touch Bar) ——— */
+.aibar-item[data-type='candidateList'],
+.aibar-item[data-type='characterPicker'] {
+  cursor: default;
+  gap: 0;
+  padding: 0;
+  /* Packed width is the viewport; never expand to content (flex min-width:auto trap). */
+  min-width: 0;
+  overflow: hidden;
+  justify-content: flex-start;
+}
+.aibar-candidate__scroll {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0; /* allow shrink below track content so overflow-x can engage */
+  flex: 1 1 0%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  border-radius: inherit;
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  pointer-events: auto;
+  /* Flush leading edge; fade only the trailing overflow (Touch Bar candidate strip). */
+  mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - 12px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0,
+    #000 calc(100% - 12px),
+    transparent 100%
+  );
+}
+.aibar-candidate__scroll::-webkit-scrollbar { display: none; }
+.aibar-candidate__scroll:active { cursor: grabbing; }
+.aibar-candidate__track {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  height: 100%;
+  width: max-content;
+  min-width: 100%;
+  /* Stick chips to the leading edge of the viewport. */
+  padding: 0 8px 0 0;
+  box-sizing: border-box;
+}
+.aibar-candidate {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  height: calc(100% - 6px);
+  padding: 0 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+  transition:
+    background-color var(--aibar-motion-fast) var(--aibar-ease-out),
+    color var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+.aibar-item[data-picker='character'] .aibar-candidate { font-size: 1.2em; padding: 0 5px; }
+.aibar-candidate:hover {
+  background: var(--_item-bg-hover);
+  color: var(--_accent);
+}
+.aibar-candidate:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: -2px;
+}
+
+/* ——— scrubber (§7.6 / design §5.6): virtualized selector + edge fade ——— */
+.aibar-item[data-type='scrubber'] {
+  cursor: default;
+  padding: 0;
+  min-width: 0;
+  overflow: hidden;
+  justify-content: flex-start;
+}
+.aibar-scrubber__scroll {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 0%;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  border-radius: inherit;
+  /* Touch / trackpad: free horizontal scrub (NSScrubber mode=.free). */
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  pointer-events: auto;
+  /* Sole sanctioned decorative affordance: signals scrollability. */
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 12px,
+    #000 calc(100% - 12px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 12px,
+    #000 calc(100% - 12px),
+    transparent 100%
+  );
+}
+.aibar-scrubber__scroll::-webkit-scrollbar { display: none; }
+.aibar-scrubber__scroll:active { cursor: grabbing; }
+.aibar-scrubber__track {
+  position: relative;
+  height: 100%;
+}
+.aibar-scrubber__item {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border: none;
+  border-right: 1px solid color-mix(in srgb, var(--_border) 60%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  padding: 0 8px;
+  transition: background-color var(--aibar-motion-fast) var(--aibar-ease-out);
+}
+.aibar-scrubber__item:hover { background: var(--_item-bg-hover); }
+.aibar-scrubber__item[data-selected='true'] {
+  background: var(--_item-bg-active);
+  font-weight: 600;
+}
+.aibar-scrubber__item--image {
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.aibar-scrubber__thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: calc(var(--_item-radius) - 2px);
+  pointer-events: none;
+  background: color-mix(in srgb, var(--_fg) 8%, transparent);
+}
+.aibar-scrubber__item:focus-visible {
+  outline: 2px solid var(--_focus-ring);
+  outline-offset: -2px;
+}
+/* Emoji / glyph scrubbers: square Color-Emoji cells, no hairline between glyphs. */
+.aibar-scrubber__item[data-glyph='true'] {
+  padding: 0;
+  border-right: none;
+  font-family:
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Noto Color Emoji',
+    'EmojiOne Color',
+    sans-serif;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+.aibar-scrubber__item[data-glyph='true']:hover {
+  background: var(--_item-bg-hover);
+  transform: scale(1.06);
+}
+.aibar-scrubber__item[data-glyph='true'][data-selected='true'] {
+  background: var(--_item-bg-active);
+}
+
+/* ——— custom: host-filled slot, geometry contract preserved ——— */
+.aibar-item[data-type='custom'] {
+  cursor: default;
+  padding: 0 6px;
+  background: transparent;
+}
+.aibar-custom__slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ——— load-shedding (arch §11.3): level 2 drops non-essential motion ——— */
+.aibar-root[data-degraded='2'] .aibar-item,
+.aibar-root[data-degraded='2'] .aibar-segment,
+.aibar-root[data-degraded='2'] .aibar-live-ring circle.value,
+.aibar-root[data-degraded='2'] .aibar-item[data-type='liveStatus'] .aibar-live-icon,
+.aibar-root[data-degraded='2'] .aibar-escape {
+  transition: none !important;
+  animation: none !important;
+}
+.aibar-root[data-degraded='2'] .aibar-item[data-entering='true'],
+.aibar-root[data-degraded='2'] .aibar-item[data-swap-enter],
+.aibar-root[data-degraded='2'] .aibar-item[data-leaving],
+.aibar-root[data-degraded='2'] .aibar-item[data-moving='true'],
+.aibar-root[data-degraded='2'] .aibar-item[data-morphing='true'] {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ——— reduced motion (design §7.3): 80ms crossfade, no positional slide ——— */
+@media (prefers-reduced-motion: reduce) {
+  .aibar-item,
+  .aibar-segment,
+  .aibar-live-ring circle.value,
+  .aibar-escape {
+    transition-duration: 80ms;
+  }
+  .aibar-item[data-entering='true'],
+  .aibar-item[data-morphing='true'],
+  .aibar-item[data-moving='true'] {
+    animation: none !important;
+  }
+  .aibar-item[data-moving='true'] {
+    transition: opacity 80ms var(--aibar-ease-out) !important;
+  }
+  .aibar-item[data-swap-enter],
+  .aibar-escape .aibar-item[data-swap-enter] {
+    animation-name: aibar-swap-fade-in !important;
+    animation-duration: 80ms !important;
+  }
+  .aibar-item[data-leaving] {
+    animation-name: aibar-swap-fade-out !important;
+    animation-duration: 80ms !important;
+  }
+  .aibar-live-ring[data-indeterminate='true'] { animation: none; opacity: 1; }
+  .aibar-item[data-type='liveStatus'] .aibar-live-icon { animation: none !important; }
+}

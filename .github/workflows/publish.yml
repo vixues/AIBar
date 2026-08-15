@@ -1,0 +1,42 @@
+name: Publish
+
+# Publishes @aibar/* to npm. Prerequisite: the @aibar npm org exists and
+# NPM_TOKEN can publish public packages. Tag: v0.1.0 (or aibar-v0.1.0).
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'aibar-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish @aibar packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Install, test, build
+        run: |
+          npm ci
+          npm test
+          npm run lint
+          npm run build
+          npm run publint
+          npm run attw
+
+      - name: Publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --workspaces --access public

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [
+    [
+      "@aibar/protocol",
+      "@aibar/core",
+      "@aibar/intent",
+      "@aibar/renderer-dom",
+      "@aibar/react",
+      "@aibar/devtools"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": [
+    "@aibar/example-hello-world",
+    "@aibar/example-vanilla-dom"
+  ]
+}

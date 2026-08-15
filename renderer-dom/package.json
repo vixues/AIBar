@@ -1,0 +1,41 @@
+{
+  "name": "@aibar/renderer-dom",
+  "version": "0.1.0",
+  "description": "DOM RendererBackend for AIBar (measure / commit / pointer / a11y).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vixues/AIBar.git",
+    "directory": "renderer-dom"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup && cp src/styles.css dist/styles.css",
+    "publint": "publint",
+    "attw": "attw --pack --format table --ignore-rules cjs-resolves-to-esm --exclude-entrypoints ./styles.css"
+  },
+  "dependencies": {
+    "@aibar/core": "0.1.0"
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js"
+}

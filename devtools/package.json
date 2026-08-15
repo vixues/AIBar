@@ -1,0 +1,41 @@
+{
+  "name": "@aibar/devtools",
+  "version": "0.1.0",
+  "description": "Optional read-only AIBar kernel inspection overlay.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vixues/AIBar.git",
+    "directory": "devtools"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "publint": "publint",
+    "attw": "attw --pack --format table --ignore-rules cjs-resolves-to-esm"
+  },
+  "dependencies": {
+    "@aibar/core": "0.1.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js"
+}

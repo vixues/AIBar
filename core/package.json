@@ -1,0 +1,38 @@
+{
+  "name": "@aibar/core",
+  "version": "0.1.0",
+  "description": "AIBar kernel: dual-lane resolver, HostAdapter SPI, WireIngress. No DOM, no React.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vixues/AIBar.git",
+    "directory": "core"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "publint": "publint",
+    "attw": "attw --pack --format table --ignore-rules cjs-resolves-to-esm"
+  },
+  "dependencies": {
+    "@aibar/protocol": "0.1.0"
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js"
+}

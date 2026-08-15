@@ -1,0 +1,9 @@
+node_modules/
+dist/
+**/dist/
+*.tsbuildinfo
+.eslintcache
+coverage/
+.DS_Store
+*.log
+.npm_install_marker

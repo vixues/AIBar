@@ -1,0 +1,37 @@
+{
+  "name": "@aibar/protocol",
+  "version": "0.1.0",
+  "description": "AIBar Item Spec v2, identifiers, predicate DSL, and wire protocol \u2014 zero runtime dependencies.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vixues/AIBar.git",
+    "directory": "protocol"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./item-spec.schema.json": "./item-spec.schema.json"
+  },
+  "files": [
+    "dist",
+    "item-spec.schema.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "publint": "publint",
+    "attw": "attw --pack --format table --ignore-rules cjs-resolves-to-esm"
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js"
+}

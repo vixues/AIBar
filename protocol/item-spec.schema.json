@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aibar.dev/schema/item-spec.schema.json",
+  "title": "AIBar Item Spec v2",
+  "description": "Declarative, data-only item protocol (aibar/2). Publishers submit data, never code (INV-A3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "type", "labelKey", "parity"],
+  "properties": {
+    "version": { "const": "aibar/2" },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9.-]*\\.aibar\\.[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z0-9][A-Za-z0-9.-]*$"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "button", "mainButton", "toggle", "segmented", "label", "group",
+        "popover", "slider", "colorPicker", "candidateList", "characterPicker",
+        "spacerSmall", "spacerLarge", "spacerFlexible", "liveStatus",
+        "suggestion", "approval"
+      ]
+    },
+    "labelKey": { "type": "string", "minLength": 1 },
+    "icon": { "type": "string" },
+    "showsLabel": { "type": "boolean" },
+    "visibilityPriority": { "type": "number" },
+    "customizationLabel": { "type": "string" },
+    "width": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min": { "type": "number" },
+        "preferred": { "type": "number" },
+        "max": { "type": "number" },
+        "flex": { "type": "number" }
+      }
+    },
+    "effect": { "enum": ["read", "write", "destructive"] },
+    "parity": { "type": "string", "minLength": 1 },
+    "visible": { "$ref": "#/$defs/predicate" },
+    "enabled": { "$ref": "#/$defs/predicate" },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "params": { "type": "object" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "properties": {
+        "kind": { "enum": ["global", "route", "session", "run"] },
+        "pattern": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "runId": { "type": "string" }
+      },
+      "required": ["kind"]
+    },
+    "ttlMs": { "type": "number", "minimum": 0 },
+    "active": { "type": "boolean" },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["key", "labelKey"],
+        "properties": {
+          "key": { "type": "string" },
+          "labelKey": { "type": "string" },
+          "icon": { "type": "string" },
+          "glyph": { "type": "string" }
+        }
+      }
+    },
+    "selectedSegment": { "type": "string" },
+    "children": {
+      "type": "array",
+      "items": { "$ref": "#" }
+    },
+    "pressAndHold": { "type": "boolean" },
+    "expand": { "enum": ["surface", "inline"] },
+    "progress": { "type": "number", "minimum": 0, "maximum": 1 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "reason": {
+      "type": "object",
+      "required": ["code"],
+      "properties": {
+        "code": { "type": "string" },
+        "args": { "type": "object" }
+      }
+    },
+    "intent": {
+      "type": "object",
+      "required": ["summaryKey"],
+      "properties": {
+        "summaryKey": { "type": "string" },
+        "params": { "type": "object" }
+      }
+    },
+    "slider": {
+      "type": "object",
+      "required": ["min", "max", "value"],
+      "properties": {
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "value": { "type": "number" },
+        "step": { "type": "number" }
+      }
+    },
+    "swatches": { "type": "array", "items": { "type": "string" }, "maxItems": 16 },
+    "selectedColor": { "type": "string" },
+    "candidates": { "type": "array", "items": { "type": "string" }, "maxItems": 12 },
+    "characters": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "predicate": {
+      "type": "object",
+      "description": "Closed DSL: eq/ne/gt/gte/lt/lte/in/exists/all/any/not. Operands are literals or ctx.* paths."
+    }
+  }
+}
